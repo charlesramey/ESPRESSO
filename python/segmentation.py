@@ -57,9 +57,6 @@ def separate_greedy_ig(ts, num_segms, cc, pdist_ratio=0.01):
         # Find peaks
         # MATLAB: findpeaks(CC(d,:),'SortStr','descend', 'minpeakdistance',pdist);
         peaks, properties = find_peaks(row, distance=p_dist)
-        prominences = properties.get('prominences', row[peaks]) # find_peaks doesn't return prominences by default unless specified?
-        # Need to call peak_prominences or use `prominence` parameter in find_peaks to filter?
-        # MATLAB: [pks, locs, width, proms] = findpeaks(...)
 
         # Scipy find_peaks returns dict 'properties' if we ask for it.
         # But for sorting by prominence we need to compute it.
@@ -81,6 +78,14 @@ def separate_greedy_ig(ts, num_segms, cc, pdist_ratio=0.01):
         peak_data.sort(key=lambda x: x[1], reverse=True) # Sort by prominence descending
 
         locs = [x[0] for x in peak_data]
+
+        # Heuristic: Limit candidates to top N by prominence to avoid selecting noise based on IG bias.
+        # We want to find K-1 cuts. If CC is strong, the top candidates should be the cuts.
+        # Allowing too many candidates allows IG (which can be biased) to pick noise.
+        # Restricting to K-1 forces reliance on Shape (CC) which is more robust for frequency changes.
+        max_candidates = max(num_segms - 1, 1)
+        if len(locs) > max_candidates:
+            locs = locs[:max_candidates]
 
         tt = []
         max_ig = np.zeros(len(locs))

@@ -37,6 +37,7 @@ def ESPRESSO(K, data, subsequence, chain_len=None):
     # MATLAB: [MP, MPI] = computMP(data, subsequence);
     mp, mpi = compute_mp(data, subsequence)
 
+
     # 2. Calculate Semantic Density Matrix (wcac)
     # MATLAB: wcac(i,:) = calculateSemanticDensityMatrix(...)
     # Note: wcac size in MATLAB: (numTS, lenTS).
